@@ -22,7 +22,7 @@ methods = []
 results = []
 conclusions = []
 
-with open('/ocean/projects/cis230089p/zyou2/Structured-Abstracts-Labels-102615.txt', 'r') as file:
+with open('./Structured-Abstracts-Labels-102615.txt', 'r') as file:
     for line in file:
         components = line.strip().split('|')
         title, category, _, _ = components
