@@ -114,17 +114,14 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained("patrickvonplaten/led-large-16384-pubmed")
     metric = evaluate.load("rouge")
 
-    logger.info("Loading category labels...")
-    background, objective, methods, results, conclusions = load_category_labels(
-        './Structured-Abstracts-Labels-102615.txt'
-    )
-
-    # Load and process training data
     logger.info("Loading training and validation data...")
     article_train, lay_sum_train, keyword_train, headings_train, id_train = load_data('elife', 'train')
     article_val, lay_sum_val, keyword_val, headings_val, id_val = load_data('elife', 'val')
 
-    logger.info("Loading additional resources...")
+    logger.info("Loading category labels...")
+    background, objective, methods, results, conclusions = load_category_labels(
+        './Structured-Abstracts-Labels-102615.txt'
+    )
     train_wiki = read_jsonl_file('./elife_train_abstract_wiki_retriever.jsonl')
     val_wiki = read_jsonl_file('./elife_val_abstract_wiki_retriever.jsonl')
     extract_train = load_json('./elife_train_extractive_sum.json')
