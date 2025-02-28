@@ -10,6 +10,18 @@ In this work, we compared the performance of fine-tuning both GPT-3.5 and [PubMe
 - Download the [NLM structured section labels](https://wayback.archive-it.org/7867/20241213200411/https://lhncbc.nlm.nih.gov/ii/areas/structured-abstracts/downloads/Structured-Abstracts-Labels-102615.txt)
 - Download the shared task datasets: [train and val](https://www.codabench.org/datasets/download/149ce7f2-b498-49be-93be-44a1d439f72d/), [test data](https://github.com/TGoldsack1/Corpora_for_Lay_Summarisation).
 
+## Usage
+### Constractive Dataset Creation
+Change your input data path [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/contrastive_dataset_creation.py#L37) before running the script.
+```bash
+# You may define these hyper-parameters on your own
+python contrastive_dataset_creation.py \
+        --device cuda:0 \
+        --chunk-size 600 \
+        --pos-threshold 0.9 \
+        --neg-threshold 0.01
+```
+
 ## Citation
 
 Please cite the below paper if you intent to use the code for your research.
