@@ -2,6 +2,9 @@
 The official repository of the Paper: 
 [UIUC_BioNLP at BioLaySumm: An Extract-then-Summarize Approach Augmented with Wikipedia Knowledge for Biomedical Lay Summarization](https://aclanthology.org/2024.bionlp-1.11) (You et al., BioNLP-WS 2024)
 
+## News
+- Download our fine-tuned LED models for [eLife](https://drive.google.com/file/d/1bu-anYqOYpSsXsYZOeytprsZtXvSypVT/view?usp=sharing) and [PLOS](https://drive.google.com/file/d/16sKTJh6xUssO4juaAxnF_0C9E4yM7q0E/view?usp=drive_link).
+
 ## System Framework
 In this work, we compared the performance of fine-tuning both GPT-3.5 and [PubMed LED Large](https://huggingface.co/patrickvonplaten/led-large-16384-pubmed) models under each dataset.
 <p align="center"><img width="70%" src="diagram.png" /></p>
