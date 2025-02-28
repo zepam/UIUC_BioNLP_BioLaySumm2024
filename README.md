@@ -28,7 +28,7 @@ python contrastive_dataset_creation.py \
 Modify the pre-trained models [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/evaluation.py#L30) before running the script: `python evaluation.py`.
 
 ### Run Model Fine-tuning
-Modify the input data path for [structured section labels](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/fine_tune_elife.py#L67) and [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/fine_tune_elife.py#L173-L181) for elife and [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/fine_tune_plos.py#L67-L76) for PLOS.
+Modify the input data path for [structured section labels](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/fine_tune_elife.py#L67) and [input data](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/fine_tune_elife.py#L179-L184) for elife and [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/fine_tune_plos.py#L67-L76) for PLOS.
 Fine-tune the PubMed LED large model for each dataset: `python fine_tune_elife.py` for eLife and `python fine_tune_plos.py` for PLOS.
 
 
