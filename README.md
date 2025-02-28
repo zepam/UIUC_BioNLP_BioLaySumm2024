@@ -24,7 +24,8 @@ In this work, we compared the performance of fine-tuning both GPT-3.5 and [PubMe
 ## Usage
 Please first change the data path in [utils.py](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/utils.py#L67)
 
-### Constractive Dataset Creation
+### Extractive Summarization
+#### Constractive Dataset Creation
 This script is designed for creating the datasets to fine-tune the extractive summarization model. Change your input data path [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/contrastive_dataset_creation.py#L37) before running the script.
 ```bash
 # You may define these hyper-parameters on your own
@@ -34,6 +35,15 @@ python contrastive_dataset_creation.py \
         --pos-threshold 0.9 \
         --neg-threshold 0.01
 ```
+#### Fine-tune the Extractive Summarizer
+Use the above constractive datasets to fine-tune the extractive summarizer:
+```bash
+python fine_tune_extractive_model.py \
+    --train_data path/to/elife_constractive_train.csv \
+    --val_data path/to/elife_constractive_val.csv \
+    --output_path path/to/elife_trained_model
+```
+#### 
 
 ### Generate Lay Language Summaries
 Modify the pre-trained models [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/evaluation.py#L30) before running the script: `python evaluation.py`.
