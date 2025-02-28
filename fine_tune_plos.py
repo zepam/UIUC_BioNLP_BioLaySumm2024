@@ -160,7 +160,6 @@ def main():
         load_best_model_at_end=True,
     )
 
-    # Initialize trainer
     logger.info("Initializing trainer...")
     trainer = Seq2SeqTrainer(
         model=model,
@@ -171,7 +170,6 @@ def main():
         eval_dataset=val_dataset,
     )
 
-    # Start training
     logger.info("Starting training...")
     trainer.train()
     logger.info("Training completed!")
