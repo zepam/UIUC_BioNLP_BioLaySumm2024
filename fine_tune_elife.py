@@ -107,6 +107,57 @@ def load_data(dataset: str, datatype: str) -> Tuple[List[str], List[str], List[s
         logger.error(f"Invalid JSON format in file: {data_path}")
         raise
 
+def process_data_to_model_inputs(batch):
+    inputs = tokenizer(
+        batch["article"],
+        padding="max_length",
+        truncation=True,
+        max_length=args.encoder_max_length,
+    )
+    outputs = tokenizer(
+        batch["abstract"],
+        padding="max_length",
+        truncation=True,
+        max_length=args.decoder_max_length,
+    )
+
+    batch["input_ids"] = inputs.input_ids
+    batch["attention_mask"] = inputs.attention_mask
+    batch["global_attention_mask"] = [[0] * len(ids) for ids in inputs.input_ids]
+    for mask in batch["global_attention_mask"]:
+        mask[0] = 1
+
+    batch["labels"] = [
+        [-100 if token == tokenizer.pad_token_id else token for token in labels]
+        for labels in outputs.input_ids
+    ]
+    return batch
+
+def compute_metrics(pred):
+    labels_ids = pred.label_ids
+    pred_ids = pred.predictions
+
+    pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+    labels_ids[labels_ids == -100] = tokenizer.pad_token_id
+    label_str = tokenizer.batch_decode(labels_ids, skip_special_tokens=True)
+
+    return metric.compute(predictions=pred_str, references=label_str)
+
+def process_article_with_sections(article, headings, wiki, extract, definitions):
+    sections = article.split('\n')
+    selected_sections = []
+    other_sections = []
+    
+    for heading, section in zip(headings, sections):
+        heading = heading.lower()
+        if heading in background or heading in conclusions or heading == 'abstract':
+            selected_sections.append(section)
+        else:
+            other_sections.append(section)
+
+    selected_text = ' '.join(selected_sections)
+    return f"{selected_text} {extract} {wiki} {definitions}"
+
 def main():
     args = parse_args()
     set_seed(args.seed)
@@ -134,21 +185,6 @@ def main():
     lay_sum_train = process_texts(lay_sum_train)
     lay_sum_val = process_texts(lay_sum_val)
 
-    def process_article_with_sections(article, headings, wiki, extract, definitions):
-        sections = article.split('\n')
-        selected_sections = []
-        other_sections = []
-        
-        for heading, section in zip(headings, sections):
-            heading = heading.lower()
-            if heading in background or heading in conclusions or heading == 'abstract':
-                selected_sections.append(section)
-            else:
-                other_sections.append(section)
-
-        selected_text = ' '.join(selected_sections)
-        return f"{selected_text} {extract} {wiki} {definitions}"
-
     logger.info("Processing articles with sections...")
     wiki_article_train = [
         process_article_with_sections(art, head, wiki, ext, def_)
@@ -165,43 +201,6 @@ def main():
             extract_val, wiki_definitions_val
         )
     ]
-
-    def process_data_to_model_inputs(batch):
-        inputs = tokenizer(
-            batch["article"],
-            padding="max_length",
-            truncation=True,
-            max_length=args.encoder_max_length,
-        )
-        outputs = tokenizer(
-            batch["abstract"],
-            padding="max_length",
-            truncation=True,
-            max_length=args.decoder_max_length,
-        )
-
-        batch["input_ids"] = inputs.input_ids
-        batch["attention_mask"] = inputs.attention_mask
-        batch["global_attention_mask"] = [[0] * len(ids) for ids in inputs.input_ids]
-        for mask in batch["global_attention_mask"]:
-            mask[0] = 1
-
-        batch["labels"] = [
-            [-100 if token == tokenizer.pad_token_id else token for token in labels]
-            for labels in outputs.input_ids
-        ]
-        return batch
-
-    def compute_metrics(pred):
-        labels_ids = pred.label_ids
-        pred_ids = pred.predictions
-
-        pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-        labels_ids[labels_ids == -100] = tokenizer.pad_token_id
-        label_str = tokenizer.batch_decode(labels_ids, skip_special_tokens=True)
-
-        return metric.compute(predictions=pred_str, references=label_str)
-
     logger.info("Preparing datasets...")
     train_dataset = Dataset.from_dict({
         'article': wiki_article_train,
