@@ -64,3 +64,5 @@ Please cite the below paper if you intent to use our code for your research:
 }
 
 ```
+### Contact Information
+If you have any questions, please email `zhiweny2@illinois.edu`.
