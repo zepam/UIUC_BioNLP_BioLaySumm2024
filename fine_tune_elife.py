@@ -20,6 +20,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Fine-tune LED model for lay summary generation')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size for training')
@@ -60,6 +62,11 @@ def load_category_labels(file_path: str) -> Tuple[List[str], List[str], List[str
         categories['methods'], categories['results'],
         categories['conclusions']
     )
+
+logger.info("Loading category labels...")
+background, objective, methods, results, conclusions = load_category_labels(
+    './Structured-Abstracts-Labels-102615.txt'
+)
 
 def read_jsonl_file(file_path: str) -> List[str]:
     try:
@@ -169,10 +176,6 @@ def main():
     article_train, lay_sum_train, keyword_train, headings_train, id_train = load_data('elife', 'train')
     article_val, lay_sum_val, keyword_val, headings_val, id_val = load_data('elife', 'val')
 
-    logger.info("Loading category labels...")
-    background, objective, methods, results, conclusions = load_category_labels(
-        './Structured-Abstracts-Labels-102615.txt'
-    )
     train_wiki = read_jsonl_file('./elife_train_abstract_wiki_retriever.jsonl')
     val_wiki = read_jsonl_file('./elife_val_abstract_wiki_retriever.jsonl')
     extract_train = load_json('./elife_train_extractive_sum.json')
