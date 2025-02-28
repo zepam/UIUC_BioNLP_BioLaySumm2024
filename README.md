@@ -38,7 +38,7 @@ python contrastive_dataset_creation.py \
 #### Fine-tune the Extractive Summarizer
 Use the above constractive datasets to fine-tune the extractive summarizer:
 ```bash
-python fine_tune_extractive_model.py \
+python fine_tune_extractive_summarizer.py \
     --train_data path/to/elife_constractive_train.csv \
     --val_data path/to/elife_constractive_val.csv \
     --output_path path/to/elife_trained_model
