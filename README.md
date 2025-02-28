@@ -1,4 +1,5 @@
-[![Conference](https://img.shields.io/badge/BioNLP-2024-4b44ce)](https://biolaysumm.org/2024/)
+[![Conference](https://img.shields.io/badge/BioNLP-2024-008080)](https://www.aclweb.org/portal/content/bionlp-2024-and-shared-tasks-acl-2024)
+[![Conference](https://img.shields.io/badge/BioLaySumm-2024-4b44ce)](https://biolaysumm.org/2024/)
 [![Paper](http://img.shields.io/badge/paper-ACL--anthology-B31B1B.svg)](https://aclanthology.org/2024.bionlp-1.11/)
 
 
