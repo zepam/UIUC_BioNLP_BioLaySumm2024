@@ -22,6 +22,9 @@ python contrastive_dataset_creation.py \
         --neg-threshold 0.01
 ```
 
+### Generate Lay Language Summaries
+Modify the pre-trained models [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/evaluation.py#L30) before running the script: `python evaluation.py`.
+
 ## Citation
 
 Please cite the below paper if you intent to use the code for your research.
