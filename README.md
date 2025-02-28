@@ -25,7 +25,7 @@ In this work, we compared the performance of fine-tuning both GPT-3.5 and [PubMe
 Please first change the data path in [utils.py](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/utils.py#L67)
 
 ### Constractive Dataset Creation
-Change your input data path [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/contrastive_dataset_creation.py#L37) before running the script.
+This script is designed for creating the datasets to fine-tune the extractive summarization model. Change your input data path [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/contrastive_dataset_creation.py#L37) before running the script.
 ```bash
 # You may define these hyper-parameters on your own
 python contrastive_dataset_creation.py \
