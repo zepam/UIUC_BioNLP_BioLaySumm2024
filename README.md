@@ -40,7 +40,7 @@ Fine-tune the PubMed LED large model for each dataset: `python fine_tune_elife.p
 
 ## Citation
 
-Please cite the below paper if you intent to use the code for your research.
+Please cite the below paper if you intent to use our code for your research:
 
 ```
 @inproceedings{you-etal-2024-uiuc,
