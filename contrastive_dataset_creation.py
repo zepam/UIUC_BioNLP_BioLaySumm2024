@@ -1,364 +1,141 @@
 import os
 import json
-from sentence_transformers import SentenceTransformer, util
-import torch
-import csv
-import random
-from sentence_transformers import SentenceTransformer, util
-import torch
-from transformers import *
-from sentence_transformers import SentenceTransformer
-from sentence_transformers import SentenceTransformer, util
-import torch
 import csv
 import re
-from langchain_text_splitters import NLTKTextSplitter
 import random
+import argparse
+from typing import List, Tuple, Dict
+from pathlib import Path
 
-# set random seed
-random_seed = 42
-random.seed(random_seed)
+import torch
+from tqdm import tqdm
+from sentence_transformers import SentenceTransformer, util
+from langchain_text_splitters import NLTKTextSplitter
 
-device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
-model = SentenceTransformer("NeuML/pubmedbert-base-embeddings").to(device)
 
-def load_data(dataset, datatype):
 
-    data_folder = './biolaysumm2024_data'
-    data_path = os.path.join(data_folder, f'{dataset}_{datatype}.jsonl')
-    lay_sum = []
-    article =[]
-    keyword = []
-    headings = []
-    id = []
-    file = open(data_path, 'r')
-    for line in (file.readlines()):
-        dic = json.loads(line)
-        article.append(dic['article'])
-        keyword.append(dic['keywords'])
-        headings.append(dic['headings'])
-        id.append(dic['id'])
-        lay_sum.append(dic['lay_summary'])
-    
-    return article, lay_sum, keyword, headings, id
+class ContrastiveDatasetCreator:
+    def __init__(self, args):
+        self.args = args
+        self.device = args.device if args.device else (
+            "cuda" if torch.cuda.is_available() else "cpu"
+        )
+        self.model = self._load_model()
+        self.text_splitter = NLTKTextSplitter(chunk_size=args.chunk_size)
+        random.seed(args.random_seed)
+        
+    def _load_model(self) -> SentenceTransformer:
+        try:
+            model = SentenceTransformer(self.args.model).to(self.device)
+            print(f"Model loaded successfully on {self.device}")
+            return model
+        except Exception as e:
+            print(f"Failed to load model: {str(e)}")
+            raise
 
-def load_test_data(dataset, datatype):
-
-    data_folder = './biolaysumm2024_data'
-    
-    data_path = os.path.join(data_folder, f'{dataset}_{datatype}.jsonl')
-    article =[]
-    keyword = []
-    headings = []
-    id = []
-    file = open(data_path, 'r')
-    for line in (file.readlines()):
-        dic = json.loads(line)
-        article.append(dic['article'])
-        keyword.append(dic['keywords'])
-        headings.append(dic['headings'])
-        id.append(dic['id'])
-    
-    return article, keyword, headings, id
-
-background = []
-objective = []
-methods = []
-results = []
-conclusions = []
-
-with open('./data/Structured-Abstracts-Labels-102615.txt', 'r') as file:
-    for line in file:
-        components = line.strip().split('|')
-        title, category, _, _ = components
-        if category == 'BACKGROUND':
-            background.append(title)
-        elif category == 'OBJECTIVE':
-            objective.append(title)
-        elif category == 'METHODS':
-            methods.append(title)
-        elif category == 'RESULTS':
-            results.append(title)
-        elif category == 'CONCLUSIONS':
-            conclusions.append(title)
+    def load_data(self, dataset: str, datatype: str) -> Tuple:
+        data_folder = Path('./biolaysumm2024_data')
+        data_path = data_folder / f'{dataset}_{datatype}.jsonl'
+        
+        if not data_path.exists():
+            raise FileNotFoundError(f"Data file not found: {data_path}")
             
-background = [item.lower() for item in background]
-objective = [item.lower() for item in objective]
-methods = [item.lower() for item in methods]
-results = [item.lower() for item in results]
-conclusions = [item.lower() for item in conclusions]
-
-### PLOS
-# train
-plos_article_train, plos_lay_sum_train, plos_keyword_train, plos_headings_train, plos_id_train = load_data('PLOS', 'train')
-# val
-plos_article_val, plos_lay_sum_val, plos_keyword_val, plos_headings_val, plos_id_val = load_data('PLOS', 'val')
-
-### eLife
-# train
-elife_article_train, elife_lay_sum_train, elife_keyword_train, elife_headings_train, elife_id_train = load_data('eLife', 'train')
-# val
-elife_article_val, elife_lay_sum_val, elife_keyword_val, elife_headings_val, elife_id_val = load_data('eLife', 'val')
-
-
-### chunk articles and lay summs for PLOS 
-
-pattern = r'\s\[.*?\]'
-text_splitter = NLTKTextSplitter(chunk_size=600)
-
-### train
-new_plos_article_train = []
-for s in plos_article_train:
-    new_s = s.replace(' . ', '. ')
-    new_s = new_s.replace(' , ', ', ')
-    new_plos_article_train.append(new_s)
-
-chunked_plos_article_train = []
-for article in new_plos_article_train:
-    texts = text_splitter.split_text(article)
-    new_texts = []
-    for t in texts:
-        t = t.replace('\n\n', ' ')
-        ### remove the irrelevant citations and references
-        result = re.sub(pattern, "", t)
-        result = result.replace(' , ', ', ')
-        new_texts.append(result)
-    chunked_plos_article_train.append(new_texts)
-    
-### val
-new_plos_article_val = []
-for s in plos_article_val:
-    new_s = s.replace(' . ', '. ')
-    new_s = new_s.replace(' , ', ', ')
-    new_plos_article_val.append(new_s)
-
-chunked_plos_article_val = []  # 100 tokens per chunk
-for article in new_plos_article_val:
-    texts = text_splitter.split_text(article)
-    new_texts = []
-    for t in texts:
-        t = t.replace('\n\n', ' ')
-        result = re.sub(pattern, "", t)
-        result = result.replace(' , ', ', ')
-        new_texts.append(result)
-    chunked_plos_article_val.append(new_texts)
-
-
-### train lay sum
-new_plos_lay_sum_train = []
-for s in plos_lay_sum_train:
-    new_s = s.replace(' . ', '. ')
-    new_s = new_s.replace(' , ', ', ')
-    new_plos_lay_sum_train.append(new_s)
-
-chunked_plos_lay_sum_train = []
-for sum in new_plos_lay_sum_train:
-    texts = text_splitter.split_text(sum)
-    new_texts = []
-    for t in texts:
-        t = t.replace('\n\n', ' ')
-        new_texts.append(t)
-    chunked_plos_lay_sum_train.append(new_texts)
-
-### val lay sum
-new_plos_lay_sum_val = []
-for s in plos_lay_sum_val:
-    new_s = s.replace(' . ', '. ')
-    new_s = new_s.replace(' , ', ', ')
-    new_plos_lay_sum_val.append(new_s)
-
-chunked_plos_lay_sum_val = []
-for sum in new_plos_lay_sum_val:
-    texts = text_splitter.split_text(sum)
-    new_texts = []
-    for t in texts:
-        t = t.replace('\n\n', ' ')
-        new_texts.append(t)
-    chunked_plos_lay_sum_val.append(new_texts)
-
-### chunk articles and lay summs for eLife
-
-pattern = r'(\(\s([^()]*\s\,\s)*[^()]*\s\))'
-text_splitter = NLTKTextSplitter(chunk_size=600)
-
-### train
-new_elife_article_train = []
-for s in elife_article_train:
-    new_s = s.replace(' . ', '. ')
-    new_s = new_s.replace(' , ', ', ')
-    new_elife_article_train.append(new_s)
-
-chunked_elife_article_train = []
-for article in new_elife_article_train:
-    texts = text_splitter.split_text(article)
-    new_texts = []
-    for t in texts:
-        t = t.replace('\n\n', ' ')
-        ### remove the irrelevant citations and references
-        result = re.sub(pattern, "", t)
-        result = result.replace(' , ', ', ')
-        new_texts.append(result)
-    chunked_elife_article_train.append(new_texts)
-    
-### val
-new_elife_article_val = []
-for s in elife_article_val:
-    new_s = s.replace(' . ', '. ')
-    new_s = new_s.replace(' , ', ', ')
-    new_elife_article_val.append(new_s)
-
-chunked_elife_article_val = []
-for article in new_elife_article_val:
-    texts = text_splitter.split_text(article)
-    new_texts = []
-    for t in texts:
-        t = t.replace('\n\n', ' ')
-        ### remove the irrelevant citations and references
-        result = re.sub(pattern, "", t)
-        result = result.replace(' , ', ', ')
-        new_texts.append(result)
-    chunked_elife_article_val.append(new_texts)
-
-### train lay sum
-new_elife_lay_sum_train = []
-for s in elife_lay_sum_train:
-    new_s = s.replace(' . ', '. ')
-    new_s = new_s.replace(' , ', ', ')
-    new_elife_lay_sum_train.append(new_s)
-
-chunked_elife_lay_sum_train = []
-for sum in new_elife_lay_sum_train:
-    texts = text_splitter.split_text(sum)
-    new_texts = []
-    for t in texts:
-        t = t.replace('\n\n', ' ')
-        new_texts.append(t)
-    chunked_elife_lay_sum_train.append(new_texts)
-
-### val lay sum
-new_elife_lay_sum_val = []
-for s in elife_lay_sum_val:
-    new_s = s.replace(' . ', '. ')
-    new_s = new_s.replace(' , ', ', ')
-    new_elife_lay_sum_val.append(new_s)
-
-chunked_elife_lay_sum_val = []
-for sum in new_elife_lay_sum_val:
-    texts = text_splitter.split_text(sum)
-    new_texts = []
-    for t in texts:
-        t = t.replace('\n\n', ' ')
-        new_texts.append(t)
-    chunked_elife_lay_sum_val.append(new_texts)
-
-
-
-### PLOS train contrastive datasets creation
-positive_chunk = []
-negative_chunk = []
-
-for lay_sum, doc in zip(chunked_plos_lay_sum_train, chunked_plos_article_train):
-    doc_embeddings = model.encode(doc, convert_to_tensor=True)
-    lay_embeddings = model.encode(lay_sum, convert_to_tensor=True)
-    cosine_scores = util.cos_sim(lay_embeddings, doc_embeddings)
-    for i in range(cosine_scores.shape[0]):
-        for j in range(cosine_scores.shape[1]):
-            if cosine_scores[i][j] >= 0.9:
-                positive_chunk.append((lay_sum[i], doc[j], 1))
-            elif cosine_scores[i][j] <= 0.01:
-                negative_chunk.append((lay_sum[i], doc[j], 0))
+        try:
+            with open(data_path, 'r') as file:
+                data = [json.loads(line) for line in file]
                 
-print("Number of PLOS training positive sentences:", len(positive_chunk))
-print("Number of PLOS training negative sentences:", len(negative_chunk))
+            article = [d['article'] for d in data]
+            keyword = [d['keywords'] for d in data]
+            headings = [d['headings'] for d in data]
+            id_list = [d['id'] for d in data]
+            lay_sum = [d.get('lay_summary', '') for d in data]
+            return article, lay_sum, keyword, headings, id_list
+        except Exception as e:
+            print(f"Error loading data from {data_path}: {str(e)}")
+            raise
 
-selected_samples = random.sample(negative_chunk, 17910)
+    def preprocess_text(self, text: str) -> str:
+        text = text.replace(' . ', '. ').replace(' , ', ', ')
+        text = text.replace('\n\n', ' ')
+        # remove citations and references
+        text = re.sub(r'\s\[.*?\]', "", text)
+        text = re.sub(r'(\(\s([^()]*\s\,\s)*[^()]*\s\))', "", text)
+        return text
 
-with open('./plos_train_sentence_level_positive_negative_pairs.csv', mode='w', newline='', encoding='utf-8') as file:
-    writer = csv.writer(file)
-    writer.writerow(['lay_sum', 'sentence', 'label'])
-    for row in positive_chunk:
-        writer.writerow(row)
-    for row in selected_samples:
-        writer.writerow(row)
+    def chunk_text(self, texts: List[str]) -> List[List[str]]:
+        chunked_texts = []
+        for text in tqdm(texts, desc="Chunking texts"):
+            text = self.preprocess_text(text)
+            chunks = self.text_splitter.split_text(text)
+            chunked_texts.append(chunks)
+        return chunked_texts
+
+    def create_pairs(self, lay_sums: List[str], docs: List[str]) -> Tuple[List[Tuple], List[Tuple]]:
+        positive_pairs = []
+        negative_pairs = []
         
-### eLife train contrastive datasets creation
-positive_chunk = []
-negative_chunk = []
-
-for lay_sum, doc in zip(chunked_elife_lay_sum_train, chunked_elife_article_train):
-    doc_embeddings = model.encode(doc, convert_to_tensor=True)
-    lay_embeddings = model.encode(lay_sum, convert_to_tensor=True)
-    cosine_scores = util.cos_sim(lay_embeddings, doc_embeddings)
-    for i in range(cosine_scores.shape[0]):
-        for j in range(cosine_scores.shape[1]):
-            if cosine_scores[i][j] >= 0.9:
-                positive_chunk.append((lay_sum[i], doc[j], 1))
-            elif cosine_scores[i][j] <= 0.01:
-                negative_chunk.append((lay_sum[i], doc[j], 0))
-                
-print("Number of eLife training positive sentences:", len(positive_chunk))
-print("Number of eLife training negative sentences:", len(negative_chunk))
-
-selected_samples = random.sample(negative_chunk, 17910)
-
-with open('./elife_train_sentence_level_positive_negative_pairs.csv', mode='w', newline='', encoding='utf-8') as file:
-    writer = csv.writer(file)
-    writer.writerow(['lay_sum', 'sentence', 'label'])
-    for row in positive_chunk:
-        writer.writerow(row)
-    for row in selected_samples:
-        writer.writerow(row)
-
-### PLOS val contrastive datasets creation
-positive_chunk = []
-negative_chunk = []
-for lay_sum, doc in zip(chunked_plos_lay_sum_val, chunked_plos_article_val):
-    doc_embeddings = model.encode(doc, convert_to_tensor=True)
-    lay_embeddings = model.encode(lay_sum, convert_to_tensor=True)
-    cosine_scores = util.cos_sim(lay_embeddings, doc_embeddings)
-    for i in range(cosine_scores.shape[0]):
-        for j in range(cosine_scores.shape[1]):
-            if cosine_scores[i][j] >= 0.9:
-                positive_chunk.append((lay_sum[i], doc[j], 1))
-            elif cosine_scores[i][j] <= 0.01:
-                negative_chunk.append((lay_sum[i], doc[j], 0))
-
-print("Number of val positive sentences:", len(positive_chunk))
-print("Number of val negative sentences:", len(negative_chunk))
-
-selected_samples = random.sample(negative_chunk, 16210)
-
-with open('./plos_val_sentence_level_positive_negative_pairs.csv', mode='w', newline='', encoding='utf-8') as file:
-    writer = csv.writer(file)
-    writer.writerow(['lay_sum', 'sentence', 'label'])
-    for row in positive_chunk:
-        writer.writerow(row)
-    for row in negative_chunk:
-        writer.writerow(row)
+        for lay_sum, doc in tqdm(zip(lay_sums, docs), desc="Creating pairs"):
+            doc_embeddings = self.model.encode(doc, convert_to_tensor=True)
+            lay_embeddings = self.model.encode(lay_sum, convert_to_tensor=True)
+            cosine_scores = util.cos_sim(lay_embeddings, doc_embeddings)
+            for i in range(cosine_scores.shape[0]):
+                for j in range(cosine_scores.shape[1]):
+                    if cosine_scores[i][j] >= self.args.pos_threshold:
+                        positive_pairs.append((lay_sum[i], doc[j], 1))
+                    elif cosine_scores[i][j] <= self.args.neg_threshold:
+                        negative_pairs.append((lay_sum[i], doc[j], 0))
         
-### eLife val contrastive datasets creation
-positive_chunk = []
-negative_chunk = []
-for lay_sum, doc in zip(chunked_elife_lay_sum_val, chunked_elife_article_val):
-    doc_embeddings = model.encode(doc, convert_to_tensor=True)
-    lay_embeddings = model.encode(lay_sum, convert_to_tensor=True)
-    cosine_scores = util.cos_sim(lay_embeddings, doc_embeddings)
-    for i in range(cosine_scores.shape[0]):
-        for j in range(cosine_scores.shape[1]):
-            if cosine_scores[i][j] >= 0.9:
-                positive_chunk.append((lay_sum[i], doc[j], 1))
-            elif cosine_scores[i][j] <= 0.01:
-                negative_chunk.append((lay_sum[i], doc[j], 0))
+        return positive_pairs, negative_pairs
 
-print("Number of eLife val positive sentences:", len(positive_chunk))
-print("Number of eLife val negative sentences:", len(negative_chunk))
+    def save_pairs(self, pairs: List[Tuple], filename: str):
+        try:
+            with open(filename, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow(['lay_sum', 'sentence', 'label'])
+                for row in pairs:
+                    writer.writerow(row)
+            print(f"Successfully saved pairs to {filename}")
+        except Exception as e:
+            print(f"Error saving pairs to {filename}: {str(e)}")
+            raise
 
-selected_samples = random.sample(negative_chunk, 16210)
+    def process_dataset(self, dataset: str, datatype: str):
+        logger.info(f"Processing {dataset} {datatype} dataset")
+        article, lay_sum, _, _, _ = self.load_data(dataset, datatype)
+        chunked_articles = self.chunk_text(article)
+        chunked_lay_sums = self.chunk_text(lay_sum)
+        positive_pairs, negative_pairs = self.create_pairs(chunked_lay_sums, chunked_articles)
+        if len(negative_pairs) > len(positive_pairs):
+            negative_pairs = random.sample(negative_pairs, len(positive_pairs))
+        all_pairs = positive_pairs + negative_pairs
+        output_file = f'./{dataset.lower()}_{datatype}_sentence_level_positive_negative_pairs.csv'
+        self.save_pairs(all_pairs, output_file)
+        
+def main():
+    parser = argparse.ArgumentParser(description="Create contrastive datasets from biomedical articles")
+    parser.add_argument('--device', type=str, default=None, help="Device to run on (cuda:N or cpu)")
+    parser.add_argument('--chunk-size', type=int, default=600, help="Size of text chunks")
+    parser.add_argument('--pos-threshold', type=float, default=0.9, help="Threshold for positive pairs")
+    parser.add_argument('--neg-threshold', type=float, default=0.01, help="Threshold for negative pairs")
+    parser.add_argument('--model', type=str, default="NeuML/pubmedbert-base-embeddings",
+                      help="Sentence transformer model to use")
+    parser.add_argument('--random-seed', type=int, default=42, help="Random seed")
+    args = parser.parse_args()
+    
+    try:
+        creator = ContrastiveDatasetCreator(args)
+        
+        creator.process_dataset("PLOS", "train")
+        creator.process_dataset("PLOS", "val")
 
-with open('./elife_val_sentence_level_positive_negative_pairs.csv', mode='w', newline='', encoding='utf-8') as file:
-    writer = csv.writer(file)
-    writer.writerow(['lay_sum', 'sentence', 'label'])
-    for row in positive_chunk:
-        writer.writerow(row)
-    for row in negative_chunk:
-        writer.writerow(row)
+        creator.process_dataset("eLife", "train")
+        creator.process_dataset("eLife", "val")
+        
+        print("Successfully completed all dataset processing")
+        
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        raise
+
+if __name__ == "__main__":
+    main()
