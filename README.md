@@ -1,4 +1,4 @@
-[![Conference](https://img.shields.io/badge/EMNLP-2024-4b44ce)](https://2024.emnlp.org/)
+[![Conference](https://img.shields.io/badge/BioNLP-2024-4b44ce)](https://biolaysumm.org/2024/)
 [![Paper](http://img.shields.io/badge/paper-ACL--anthology-B31B1B.svg)](https://aclanthology.org/2024.bionlp-1.11/)
 
 
