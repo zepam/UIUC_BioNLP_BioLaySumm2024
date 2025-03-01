@@ -25,7 +25,7 @@ In this work, we compared the performance of fine-tuning both GPT-3.5 and [PubMe
 Please first change the data path in [utils.py](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/utils.py#L67)
 
 ### Extractive Summarization
-#### Constractive Dataset Creation
+#### 1. Constractive Dataset Creation
 This script is designed for creating the datasets to fine-tune the extractive summarization model. Change your input data path [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/contrastive_dataset_creation.py#L37) before running the script.
 ```bash
 # You may define these hyper-parameters on your own
@@ -35,7 +35,7 @@ python contrastive_dataset_creation.py \
         --pos-threshold 0.9 \
         --neg-threshold 0.01
 ```
-#### Fine-tune the Extractive Summarizer
+#### 2. Fine-tune the Extractive Summarizer
 Use the above constractive datasets to fine-tune the extractive summarizer:
 ```bash
 python fine_tune_extractive_summarizer.py \
@@ -43,15 +43,24 @@ python fine_tune_extractive_summarizer.py \
     --val_data path/to/elife_constractive_val.csv \
     --output_path path/to/elife_trained_model
 ```
-#### 
-
-### Generate Lay Language Summaries
-Modify the pre-trained models [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/evaluation.py#L30) before running the script: `python evaluation.py`.
+#### 3. Generate Extractive Summaries
+After fine-tuning the extractive summarization model, run the following command to generate extractive summaries:
+```bash
+python run_extractive_summarization.py \
+    --data_folder /path/to/biolaysumm2024_data \
+    --dataset eLife \
+    --split train \
+    --labels_file /path/to/Structured-Abstracts-Labels-102615.txt \
+    --model_path /path/to/elife_trained_model \
+    --output_dir ./elife_extractive_summaries
+```
 
 ### Run Model Fine-tuning
 Modify the input data path for [structured section labels](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/fine_tune_elife.py#L67) and [input data](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/fine_tune_elife.py#L179-L184) for elife and [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/fine_tune_plos.py#L67-L76) for PLOS.
 Fine-tune the PubMed LED large model for each dataset: `python fine_tune_elife.py` for eLife and `python fine_tune_plos.py` for PLOS.
 
+### Generate Lay Language Summaries
+Modify the pre-trained models [here](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/evaluation.py#L30) before running the script: `python evaluation.py`.
 
 ## Citation
 
