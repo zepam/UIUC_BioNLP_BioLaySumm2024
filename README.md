@@ -21,6 +21,9 @@ In this work, we compared the performance of fine-tuning both GPT-3.5 and [PubMe
 - Download the [NLM structured section labels](https://wayback.archive-it.org/7867/20241213200411/https://lhncbc.nlm.nih.gov/ii/areas/structured-abstracts/downloads/Structured-Abstracts-Labels-102615.txt)
 - Download the shared task datasets: [train and val](https://www.codabench.org/datasets/download/149ce7f2-b498-49be-93be-44a1d439f72d/), [test data](https://github.com/TGoldsack1/Corpora_for_Lay_Summarisation).
 
+## Environment
+Install: torch, langchain, datasets, logger, accelerate>=0.26.0'
+
 ## Usage
 Please first change the data path in [utils.py](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/utils.py#L67)
 
@@ -42,6 +45,13 @@ python fine_tune_extractive_summarizer.py \
     --train_data path/to/elife_constractive_train.csv \
     --val_data path/to/elife_constractive_val.csv \
     --output_path path/to/elife_trained_model
+```
+
+```bash
+python fine_tune_extractive_summarizer.py \
+    --train_data data/elife_train_sentence_level_positive_negative_pairs.csv \
+    --val_data data/elife_val_sentence_level_positive_negative_pairs.csv \
+    --output_path elife_trained_model
 ```
 #### 3. Generate Extractive Summaries
 After fine-tuning the extractive summarization model, run the following command to generate extractive summaries:
