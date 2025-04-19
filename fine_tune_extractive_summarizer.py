@@ -11,6 +11,8 @@ from sentence_transformers.evaluation import EmbeddingSimilarityEvaluator
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+import time
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -145,6 +147,12 @@ def main():
     torch.manual_seed(args.seed)
     os.makedirs(args.output_path, exist_ok=True)
     
+    start_time = time.time()
+    logger.info("Starting training process")
+    logger.info(f"Using device: {args.device}")
+    logger.info(f"Model name: {args.model_name}")
+
+
     train_model(
         train_path=args.train_data,
         val_path=args.val_data,
@@ -154,6 +162,8 @@ def main():
         output_path=args.output_path,
         device=args.device
     )
+    end_time = time.time()
+    logger.info(f"Training completed in {end_time - start_time:.2f} seconds")
 
 if __name__ == "__main__":
     main()
