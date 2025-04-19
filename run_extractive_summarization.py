@@ -3,8 +3,10 @@ import json
 import logging
 import os
 import re
+import time
 from typing import Dict, List, Tuple
 import torch
+
 from transformers import AutoConfig, AutoTokenizer, AutoModel
 from summarizer import Summarizer
 from langchain_text_splitters import NLTKTextSplitter
@@ -118,6 +120,8 @@ def setup_summarizer(model_path: str) -> Summarizer:
     return Summarizer(custom_model=model, custom_tokenizer=tokenizer)
 
 def main():
+
+    start_time = time.time()
     parser = argparse.ArgumentParser(
         description="Generate extractive summaries for BioLaySumm datasets"
     )
@@ -219,6 +223,9 @@ def main():
 
     with open(os.path.join(args.output_dir, f"{base_filename}_extractive_summaries.json"), 'w') as f:
         json.dump(extractive_summaries, f)
+
+    end_time = time.time()
+    logger.info(f"Processing completed in {end_time - start_time:.2f} seconds")
 
 if __name__ == "__main__":
     main()  
