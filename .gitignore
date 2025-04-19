@@ -4,3 +4,7 @@ biolaysumm2024_data/eLife_val.jsonl
 biolaysumm2024_data/PLOS_test.jsonl
 biolaysumm2024_data/PLOS_train.jsonl
 biolaysumm2024_data/PLOS_val.jsonl
+elife_train_sentence_level_positive_negative_pairs.csv
+elife_val_sentence_level_positive_negative_pairs.csv
+plos_train_sentence_level_positive_negative_pairs.csv
+plos_val_sentence_level_positive_negative_pairs.csv

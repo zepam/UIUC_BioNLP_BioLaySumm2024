@@ -6,6 +6,7 @@ import random
 import argparse
 from typing import List, Tuple, Dict
 from pathlib import Path
+import time
 
 import torch
 from tqdm import tqdm
@@ -127,6 +128,7 @@ def main():
     args = parser.parse_args()
     
     try:
+        start_time = time.time()
         creator = ContrastiveDatasetCreator(args)
         
         creator.process_dataset("PLOS", "train")
@@ -136,6 +138,8 @@ def main():
         creator.process_dataset("eLife", "val")
         
         print("Successfully completed all dataset processing")
+        end_time = time.time()
+        print(f"Total time taken: {end_time - start_time:.2f} seconds")
         
     except Exception as e:
         print(f"An error occurred: {str(e)}")
