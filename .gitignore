@@ -27,3 +27,4 @@ elife_trained_model/tokenizer.json
 elife_trained_model/vocab.txt
 elife_trained_model/1_Pooling/config.json
 elife_trained_model/eval/similarity_evaluation_dev_results.csv
+checkpoints/model_1/eval/similarity_evaluation_dev_results.csv

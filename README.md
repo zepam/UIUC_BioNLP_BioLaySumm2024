@@ -22,7 +22,7 @@ In this work, we compared the performance of fine-tuning both GPT-3.5 and [PubMe
 - Download the shared task datasets: [train and val](https://www.codabench.org/datasets/download/149ce7f2-b498-49be-93be-44a1d439f72d/), [test data](https://github.com/TGoldsack1/Corpora_for_Lay_Summarisation).
 
 ## Environment
-Install: torch, langchain, datasets, logger, accelerate>=0.26.0'
+Install: torch, langchain, datasets, logger, accelerate>=0.26.0
 
 ## Usage
 Please first change the data path in [utils.py](https://github.com/zhiwenyou103/UIUC_BioNLP_BioLaySumm2024/blob/main/utils.py#L67)
@@ -62,6 +62,16 @@ python run_extractive_summarization.py \
     --split train \
     --labels_file /path/to/Structured-Abstracts-Labels-102615.txt \
     --model_path /path/to/elife_trained_model \
+    --output_dir ./elife_extractive_summaries
+```
+
+```bash
+python run_extractive_summarization.py \
+    --data_folder /data \
+    --dataset eLife \
+    --split train \
+    --labels_file /data/Structured-Abstracts-Labels-102615.txt \
+    --model_path /elife_trained_model \
     --output_dir ./elife_extractive_summaries
 ```
 
