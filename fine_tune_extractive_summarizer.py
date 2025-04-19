@@ -46,10 +46,10 @@ def create_examples(data: List[List[str]]) -> List[InputExample]:
 def train_model(
     train_path: str,
     val_path: str,
+    output_path: str,
     model_name: str = 'NeuML/pubmedbert-base-embeddings',
     batch_size: int = 32,
     epochs: int = 5,
-    output_path: str,
     device: str = None,
     evaluation_steps: int = None
 ) -> None:
