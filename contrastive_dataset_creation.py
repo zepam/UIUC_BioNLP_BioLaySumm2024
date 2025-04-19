@@ -12,7 +12,11 @@ from tqdm import tqdm
 from sentence_transformers import SentenceTransformer, util
 from langchain_text_splitters import NLTKTextSplitter
 
+import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class ContrastiveDatasetCreator:
     def __init__(self, args):
