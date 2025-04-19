@@ -37,8 +37,8 @@ class ContrastiveDatasetCreator:
             print(f"Failed to load model: {str(e)}")
             raise
 
-    def load_data(self, dataset: str, datatype: str) -> Tuple:
-        data_folder = Path('./biolaysumm2024_data')
+    def load_data(self, dataset: str, datatype: str, data_folder: str = './biolaysumm2024_data') -> Tuple:
+        data_folder = Path(data_folder)
         data_path = data_folder / f'{dataset}_{datatype}.jsonl'
         
         if not data_path.exists():
@@ -143,3 +143,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
